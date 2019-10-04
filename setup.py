@@ -28,7 +28,7 @@ PROJECT_URLS = {
     "Forum": "https://community.home-assistant.io/",
 }
 
-PACKAGES = find_packages(exclude=["tests", "tests.*"])
+PACKAGES = find_packages(exclude=["tests.*"])
 
 REQUIRES = [
     "aiohttp==3.6.1",
