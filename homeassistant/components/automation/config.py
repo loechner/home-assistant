@@ -1,19 +1,22 @@
 """Config validation helper for the automation integration."""
-import asyncio
 import importlib
+import logging
 
 import voluptuous as vol
 
-from homeassistant.const import CONF_PLATFORM
 from homeassistant.config import async_log_exception, config_without_domain
+from homeassistant.const import CONF_PLATFORM
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import condition, config_per_platform, script
 from homeassistant.loader import IntegrationNotFound
+from homeassistant.util.async_ import safe_wait
 
 from . import CONF_ACTION, CONF_CONDITION, CONF_TRIGGER, DOMAIN, PLATFORM_SCHEMA
 
 # mypy: allow-untyped-calls, allow-untyped-defs
 # mypy: no-check-untyped-defs, no-warn-return-any
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_validate_config_item(hass, config, full_config=None):
@@ -55,11 +58,12 @@ async def async_validate_config_item(hass, config, full_config=None):
 async def async_validate_config(hass, config):
     """Validate config."""
     automations = []
-    validated_automations = await asyncio.gather(
-        *(
+    validated_automations = await safe_wait(
+        (
             async_validate_config_item(hass, p_config, config)
             for _, p_config in config_per_platform(config, DOMAIN)
-        )
+        ),
+        logger=_LOGGER,
     )
     for validated_automation in validated_automations:
         if validated_automation is not None:
